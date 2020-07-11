@@ -1,0 +1,620 @@
+---
+title: "Accidental_Drug_Related_Deaths"
+author: "Aleah Goldstein"
+date: "5/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+#### First, we load our required libraries.
+
+```{r}
+library(tidyverse)
+library(dplyr) 
+library(forcats) 
+library(ggplot2) 
+library(stringr) 
+library(tools)
+library(RColorBrewer)
+library(tidycensus)
+library(viridis)
+```
+We also need to get our API key for the census data.
+
+```{r}
+Sys.getenv("CENSUS_API_KEY")
+```
+NOTICE: "This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau."
+
+Next, we read in the csv file "Accidental_Drug_Related_Deaths_2012-2018.csv" that came from Data.gov. The dataset contains a listing of each accidental death associated with drug overdose in Connecticut from 2012 to 2018, excluding 2015 and 2017. The dataset can be found at: https://catalog.data.gov/dataset/accidental-drug-related-deaths-january-2012-sept-2015/resource/44580a89-a260-4844-8ead-35736f395389
+
+```{r}
+df <- read_csv("Accidental_Drug_Related_Deaths_2012-2018.csv", col_types = cols(
+  Age = col_integer(),
+  Sex = col_factor(),
+  Race = col_factor(),
+  Location = col_factor(),
+  LocationifOther = col_factor(),
+  DescriptionofInjury = col_factor(),
+  InjuryPlace = col_factor(),
+  COD = col_factor(),
+  OtherSignifican = col_factor()
+  ))
+```
+
+Let's look at the first six rows of the dataset. We see that there are 41 columns -- many of which we can't see.
+```{r}
+head(df)
+```
+
+We should check that the ID's are unique.
+```{r}
+test_unique <- df%>%
+  group_by(ID)%>%
+  summarize(count = n_distinct(ID))
+  nrow(df) == nrow(test_unique)
+```
+
+Now we should spread the variables "DateReported" and "DateofDeath" from the DateType column into separate columns. We also know see that there are 5,105 rows in this dataset.
+```{r}
+df2 <- df %>% 
+  spread(key = DateType, value = Date) %>% 
+  select(-`<NA>`) #remove the new NA column
+df2 <- df2[c(1,40,41, 2:39)] #reorder columns so that the variables DateofDeath and DateReported come after ID
+df2%>%
+  select(ID, DateofDeath, DateReported)
+```
+
+
+Let's separate the day, month, year, and times from DateofDeath and DateReported. 
+```{r}
+df3 <- df2%>%
+  separate(DateofDeath, into = c("DateofDeath", "TimeofDeath"), sep = 11)%>%
+  separate(DateofDeath, into = c("DeathMonth", "DeathDay", "DeathYear"), sep = "/", convert = TRUE)%>%
+  separate(DateReported, into = c("DateReported", "TimeofReport"), sep = 11)%>%
+  separate(DateReported, into = c("ReportMonth", "ReportDay", "ReportYear"), sep = "/", convert = TRUE)
+df3%>%
+  select(ID, DeathMonth, DeathDay, DeathYear, TimeofDeath, ReportMonth, ReportDay, ReportYear, TimeofReport)
+```
+
+Now let's check if the TimeOfDeath or TimeofReport every change.
+```{r}
+df3 %>%
+  group_by(TimeofDeath)%>%
+  summarise(n = n())
+df3 %>%
+  group_by(TimeofReport)%>%
+  summarise(n = n())
+```
+
+Since *TimeofDeath* and *TimeofReport* are always marked as "12:00:00 AM" or "NA", let's remove them from the dataset.
+
+We also want to know if InjuryState has useful information.
+```{r}
+df3%>%
+  group_by(InjuryState)%>%
+  summarise(n = n())
+```
+
+We should remove InjuryState as the information is mostly missing. Let's also remove *MannerofDeath*, *DeathCityGeo*, and *ResidenceCityGeo*, and *InjuryCityGeo* because they won't be used in this portion of the analysis. I would also like to remove the columns *Other*, *OpiateNOS*, and *AnyOpiod* as there are already 20 other columns with details on the drugs taken.
+```{r}
+df3 <- df3%>%
+  select(-TimeofDeath, -TimeofReport, -InjuryState, -MannerofDeath , -DeathCityGeo, -ResidenceCityGeo, -InjuryCityGeo, -Other, -OpiateNOS, -AnyOpioid)
+```
+
+Now we need to fix the capitalization of several columns. Let's create a function for this.
+```{r}
+capitalizeColumns <- function(df,vars){
+     require(tools)
+     for(v in vars) 
+       df[[v]] <- toTitleCase(tolower(df[[v]]))
+     df
+}
+```
+
+
+Let's apply the *captilalizeColumns* function to the columns that are all in uppercase.
+```{r}
+df3 <- df3%>%
+  capitalizeColumns(c("ResidenceCity", "ResidenceCounty", "DeathCity", "DeathCounty", "InjuryCity", "InjuryCounty", "LocationifOther", "DescriptionofInjury", "InjuryPlace", "COD", "OtherSignifican"))
+df3%>%
+  select(ResidenceCity, ResidenceCounty, ResidenceState, DeathCity, DeathCounty, InjuryCity, InjuryCounty, LocationifOther, DescriptionofInjury, InjuryPlace, COD, OtherSignifican)
+```
+
+Now let's combine columns related to the drug taken. 
+
+First, we need to replace each column variable that has a "Y" with the name of the column.
+```{r}
+for (i in 1:length(df3)) {
+    df3[[i]] <- str_replace(df3[[i]], "Y", colnames(df3)[i])
+}
+df3%>%
+  select(24:31) #show changed columns
+```
+
+Next, we combine the drugs into one column.
+```{r}
+df3 <- df3%>%
+  unite(col = Drug, Heroin, Cocaine, Fentanyl, FentanylAnalogue, Oxycodone, Oxymorphone, Ethanol, Hydrocodone, Benzodiazepine, Methadone, Amphet, Tramad, Morphine_NotHeroin, Hydromorphone, sep =" & ",na.rm = TRUE)
+df3%>%
+  select(Drug)
+```
+
+When the variables in drug columns were converted to the name of the columns the "NY" variables in the column *ResidenceState* were converted to "NResidenceState". We need to change these back to "NY".
+```{r}
+df3 <- df3%>%
+  mutate(ResidenceState = fct_recode(ResidenceState,
+                                     "NY" = "NResidenceState"))
+```
+
+We should look at the levels of Race.
+```{r}
+df3%>%
+  select(Race)%>%
+  group_by(Race)%>%
+  summarize(n = n())
+```
+
+We should recode the levels of "Race" to help with visualizations. For the purpose of this analysis we will combine "Asian, Other", "Asian, Indian", and "Chinese". We will also combine Hawaiian and Native American with the "Other" category for the analysis as there is one Hawaiian and one Native American. For this analysis the visualizations will be clearer with fewer categories.
+
+```{r}
+df3 <- df3%>%
+  mutate(Race = fct_recode(Race,
+                                     "Asian" = "Asian, Other",
+                                     "Asian" = "Asian Indian",
+                                     "Asian" = "Chinese",
+                                     "Other" = "Other",
+                                     "Other" = "Unknown",
+                                    "Other" = "Hawaiian",
+                                    "Other" = "Native American, Other"
+                                     ))
+```
+
+Before visualizing the data let's make sure datatypes are corrected for variables we want to visualize. 
+```{r}
+df3$DeathMonth<- factor(df3$DeathMonth, levels=c(1,2,3,4,5,6,7,8,9,10,11,12))
+df3$DeathYear<- factor(df3$DeathYear, levels=c(2012,2013,2014,2016,2018))
+df3$Sex<- factor(df3$Sex, levels=c("Male", "Female"))
+df3 <- df3%>%
+  mutate(Age = as.integer(Age))%>%
+  mutate(Drug = as.factor(Drug))
+df3
+```
+
+Now we want to look at the discribution of age and sex in this dataset. Most deaths appear to take place between 20 and 60 years old. The histogram also shows a sharp increase in deaths every 5 years. Females account for less accidental drug related deaths than men but follow a similar pattern to men.
+
+```{r fig.height=5, fig.width=7}
+df3%>%
+  filter(!is.na(Age) & !is.na(Sex) & !Sex == "Unknown") %>%
+  ggplot() +
+  geom_histogram(aes(x = Age, fill = Sex), color = "white")+
+  scale_fill_brewer(palette = "Paired")+
+  scale_x_continuous(breaks = c(15,20,25,30,35,40,45,50,55,60,65,70,75,80))+
+  labs(title = 'Amount of Deaths by Age',
+       y = 'Death Count'
+       )
+```
+
+Now let's look at the fifteen most common drugs causing accidental drug deaths. 
+```{r}
+df4 <- df3%>%
+  select(Drug, Age)%>%
+  group_by(Drug)%>%
+  summarize(
+    n = n())%>%
+  arrange(desc(n))%>%
+  na_if("")%>%
+  na.omit(Drug)%>%
+  slice(1:15)
+df4
+```
+
+Here's a visualize of the top drugs. Heroin, fentanyl, and cocaine and various combinations of them caused the most deaths.
+```{r}
+df4%>%
+ggplot(aes(x  = reorder(Drug, n), y = n))+
+  geom_bar(stat = "identity", fill = "Red", alpha = 0.5)+
+  coord_flip()+
+  labs(title = 'Fifteen Most Frequent Drug Combinations Causing Death',
+       x = 'Drugs',
+       y = 'Death Count'
+       )
+```
+
+We're going to make a new dataframe with only the 5 most common drug combinations, so that we can conduct further exploratory data analysis.
+```{r}
+df4 <- df4%>%
+  slice(1:5)
+df5 <- df3%>%
+  filter(Drug %in% df4$Drug)
+df5
+```
+
+Using this new dataframe, we can look at age according to the top five drugs. Looking at the boxplot below, people seem to die from cocaine at an older age than those who die from other drugs. They die in their mid 40s to mid 50s, whereas people who die from other drugs, die in their late 20s to late 40s. These deaths range from the 25 percentile to 75th percentile. Therefore, deaths take place outside of this range. There are also a few outliers that we can also note for "cocaine" and "heroin & fentanyl".  
+```{r fig.height= 3, fig.width=5}
+df5%>%
+  ggplot(mapping = aes(x = Drug, y = Age, fill = Drug)) + 
+  geom_boxplot() +
+  scale_fill_viridis(option = "D", discrete = TRUE)+
+  theme(legend.position = "none")+
+  labs(
+    title = "Boxplot of Age vs Drug Taken"
+  )
+```
+
+
+A violin plot of this data could help visualize the distribution of data. The graph shows that deaths from cocaine do concentrate at 50 years old with outliers leading down to 20 years old. Heroin and fentanyl concentrate around 30 years old and have outliers at older ages. "Heroin & Cocaine" has a fairly even distribution. "Heroin & Fentanyl" is slightly bimodal with concentrations at 30 years old and 50 years old, which is interesting. There are outliers as well leading up past 80 years old.
+```{r fig.height= 3, fig.width5}
+df5%>%
+  ggplot(mapping = aes(x = Drug, y = Age, fill = Drug)) + 
+  geom_violin() +
+  theme(legend.position = "none")+
+  scale_fill_viridis(option = "D", discrete = TRUE)+
+  labs(
+    title = "Violin Plot of Age vs Drug Taken"
+  )
+```
+
+
+The boxplot below compares race and age. It shows that asian people have died from accidental drug related deaths before the age of 40, except for two outliers. Unlike asian people, the middle 50th percentile of black people have died between 40 and 60 years old with the median at 50 years old. The middle 50th percentile of white people have died between 30 and 50 years old.
+```{r}
+df5%>%
+  filter(!is.na(Race))%>%
+  ggplot(mapping = aes(x = Race, y = Age, fill = Race)) + 
+  geom_boxplot()+
+  scale_fill_viridis(option = "B", discrete = TRUE)+
+  theme(legend.position = "none")+
+  labs(
+    title = "Boxplot of Race vs Drug Taken"
+  )
+```
+
+The violin plot below helps examine the distrubution of age and race. It shows where each group's outliers are, and it shows that the white distribution is slightly bimodal. 
+```{r}
+df5%>%
+  filter(!is.na(Race))%>%
+  ggplot(mapping = aes(x = Race, y = Age, fill = Race)) + 
+  geom_violin() +
+  scale_fill_viridis(option = "B", discrete = TRUE)+
+  theme(legend.position = "none")+
+  labs(
+    title = "Violin Plot of Race vs Drug Taken"
+  )
+```
+
+The graph below compares race and the top 5 drugs. Looking at the graph, it appears that white people have the largest amount of deaths for all five drugs. It also shows that heroin, by itself, accounts for the most deaths. We can also see that a large proportion of black people died from cocaine and a large proportion of white people died from heroin. 
+```{r}
+df5%>%
+  filter(!is.na(Race) & (Drug == "Heroin" | Drug == "Fentanyl" | Drug == "Heroin & Fentanyl" | Drug == "Cocaine" | Drug == "Heroin & Cocaine"))%>%
+  ggplot(aes(Drug, fill = Race)) +
+  geom_bar()+
+  scale_fill_brewer(palette = "Paired")+
+  theme(axis.text.x = element_text(angle = -60))+
+  labs(title = 'Top 5 Drugs vs Death Count Broken Down by Race',
+       y = 'Death Count'
+       )
+```
+
+This next graph looks at the amount of deaths per year for the 5 most common drugs causing death. It shows that 2016 saw the most deaths and 2018 saw a steep decline in deaths. Deaths related to fentanyl or the combination of fentanyl and heroin have increased over the years. In particular, there was a big jump in deaths caused by fentanyl from 2012 to 2016. Deaths caused by cocaine or heroin, or the combination of the two, seem to have decreased over the years. 
+```{r}
+df5%>%
+  filter(!is.na(DeathYear))%>%
+  ggplot(aes(x = DeathYear, fill = Drug)) +
+  geom_bar()+
+  scale_fill_brewer(palette = "Paired")+
+  labs(title = 'Top 5 Drugs Causing Death Per Year',
+       x = 'Death Year',
+       y = 'Death Count'
+       )
+```
+
+
+Now, looking at the amount of deaths per month for the top five drugs, it appears the fewest deaths occur in January and the most deaths occur in November. In general, deaths appear to peak every 3 months, with an overall increase throughout the year.
+```{r}
+df5%>%
+  filter(!is.na(DeathMonth))%>%
+  ggplot(aes(x = DeathMonth, fill = Drug)) +
+  scale_fill_brewer(palette = "Paired")+
+  geom_bar()+
+  labs(title = 'Top 5 Drugs Causing Death Per Month',
+       y = 'Death Count',
+       x = 'Death Month'
+       )
+```
+
+
+Next, we want to see the discribution of deaths by age for the 6 most common drugs. We show the breakdown of the year each death occured. Looking at the graph, it appears that deaths related to cocaine occur more often in someone's 40s and 50s. Deaths related to heroin peak in someone's 20s, especially during their mid-20s. They also peak during the mid-40s. Deaths related to fentanyl seem to concentrate in someone's 20s and 30s. Another interesting feature to notice is that deaths related to cocaine and heroin occured primarily between 2012-2014, while deaths related to fentanyl began later, in 2016. 
+
+```{r fig.height=10, fig.width=12}
+df3%>%
+  filter(!is.na(Age) & !is.na(DeathYear) & (Drug == "Heroin" | Drug == "Fentanyl" | Drug == "Heroin & Fentanyl" | Drug == "Cocaine" | Drug == "Heroin & Cocaine" | Drug == "Heroin & Ethanol")) %>%
+  ggplot() +
+  geom_bar(aes(x = Age, fill = DeathYear), width = 0.9)+
+  scale_fill_viridis(option = "D", discrete = TRUE)+
+  labs(title = 'Top 5 Drugs vs Death Count Per Year',
+       y = 'Death Count',
+       x = 'Drug'
+       )+
+  facet_wrap(~ Drug, nrow = 3)
+```
+
+There are several columns of this dataset with hundreds of different values. For instance, here is the *LocationifOther* variable. We can see that there are 293 unique values. Looking through them, many indicate a person was at a hotel, motel, or lodge. Another common trend is that a person was at another person's residence. Finally, many people were found in a vehicle, car, or cab.
+```{r}
+df3%>%
+  select(LocationifOther)%>%
+  group_by(LocationifOther)%>%
+  summarize(n = n())
+```
+
+We want to extract certain keywords from the current 293 variables and then combine them to create higher-level variables.  First, we will create a vector with commonly found words within the column called *locations*. Then we will collapse these values int othe variable *location_match* separated by "|'s". This will serve as the pattern to look for within the str_extract_all function.
+```{r}
+locations <- c("Lodge", "Hotel", "Motel", "Inn", "Super 8", "Vehicle", "Cab", "Car", "Boyfriend", "Girlfriend", "Sister", "Brother", "Cousin", "Dad", "Father", "Friend", "Grandfather", "Grandmother", "Godfather", "Companion", "Neighbor", "Mother", "Niece", "Parent")
+location_match <- str_c(locations, collapse = "|")
+location_match
+```
+
+Here we extract the keywords using the function *str_extract_all*. We then summarize the variables within the column to show the new variables.
+```{r}
+df8 <- df3%>%
+  mutate(LocationifOther = str_extract_all(LocationifOther, location_match))%>%
+  unnest() 
+df8%>%
+  select(LocationifOther)%>%
+  group_by(LocationifOther)%>%
+  summarize(n = n())
+```
+
+Here we use the function *fct_collapse* to combine the variables into the higher-level variables: Hotels_Motels, Other_Residences, and Vehicle. 
+```{r}
+df8<-df8%>%
+  mutate(LocationifOther = fct_collapse(LocationifOther,
+                                        Hotels_Motels = c("Hotel", "Motel", "Inn", "Lodge", "Super 8"),
+                                        Others_Residence = c("Boyfriend", "Brother", "Companion", "Cousin", "Dad", "Father", "Friend", "Girlfriend", "Godfather", "Grandmother", "Grandfather", "Mother", "Niece", "Parent", "Sister", "Neighbor"),
+                                        Vehicle = c("Vehicle", "Cab", "Car")
+  ))
+df8$LocationifOther<- factor(df8$LocationifOther, levels=c("Hotels_Motels","Others_Residence", "Vehicle"))
+df8%>%
+  select(LocationifOther)%>%
+  group_by(LocationifOther)%>%
+  summarize(n = n())
+```
+
+Now, we want to unite the column *LocationifOther* with the column *Location* to combine information. Let's first look at the variables within *Location*.
+```{r}
+df8%>%
+  select(Location)%>%
+  group_by(Location)%>%
+  summarize(n = n())
+```
+
+We need to define the levels and remove the variables that only appear a few times. 
+```{r}
+df8$Location<- factor(df8$Location, levels=c("Hospital","Residence"))
+#levels(df3$Location) <- c("Hospital", "Residence")
+df8%>%
+  select(Location)%>%
+  group_by(Location)%>%
+  summarize(n = n())
+```
+
+Now we can unite the columns.
+```{r}
+df8 <- df8%>% 
+  mutate(Location = as.character(Location))%>%
+  mutate(LocationifOther = as.character(LocationifOther))%>%
+  unite(col = Location, Location, LocationifOther, na.rm = TRUE)
+df8%>%
+  select(Location)
+```
+
+Here are all the values for *Location*. There was some overlap between values so we will eliminate the ones that overlap as we do not know which is correct.
+```{r}
+df8%>%
+  select(Location)%>%
+  group_by(Location)%>%
+  summarize(n = n())
+```
+
+We can now see that most people died in their home or a hospital. Many were also found in a hotel/motel, and some were found in vehicles. The remaining `NA` values account for public spaces, outdoor spaces, parking lots, stairwells, and more.
+```{r}
+df8$Location<- factor(df8$Location, levels=c("Hospital","Hotels_Motels", "Others_Residence", "Residence", "Vehicle"))
+df8%>%
+  select(Location)%>%
+  group_by(Location)%>%
+  summarize(n = n())
+```
+
+Below is a comparison of *Location* to mean age and the number of deaths. The mean occurs around 40 years old. However, most deaths take place in the person's own residence or the hospital.
+```{r}
+location_sum <- df8 %>% 
+mutate(Age = as.integer(Age))%>%
+filter(!is.na(Location))%>%
+group_by(Location) %>% 
+  summarize(
+    Age_Mean = mean(Age, na.rm = TRUE),
+    n = n()
+)%>%
+  arrange(desc(n))
+location_sum
+```
+
+Another variable that has many values is *DescriptionofInjury*. There are 248 unique values. 
+```{r}
+df3%>%
+  select(DescriptionofInjury)%>%
+  group_by(DescriptionofInjury)%>%
+  summarize(n = n())
+```
+
+We are interested in the injuries related to prescribed medications. We will pull these words out of the column.
+```{r}
+Injuries <- c("Medication", "Medications", "Medicine", "Prescribed", "Prescription", "Inhalants", "Inhalant")
+Injuries_match <- str_c(Injuries, collapse = "|")
+Injuries_match
+```
+
+
+```{r}
+df7 <- df8%>%
+  mutate(DescriptionofInjury = str_extract_all(DescriptionofInjury, Injuries_match))%>%
+  unnest() 
+df7%>%
+  select(DescriptionofInjury)%>%
+  group_by(DescriptionofInjury)%>%
+  summarize(n = n())
+```
+
+We can see that about 36% of injuries were due to the abuse of prescribed medications.
+```{r}
+df7<-df7%>%
+  mutate(DescriptionofInjury = fct_collapse(DescriptionofInjury,
+        Prescriptions = c("Inhalants", "Medication", "Medicine", "Prescribed", "Prescription", "Inhalant")
+  ))
+#df7$DescriptionofInjury<- factor(df7$DescriptionofInjury, levels=c("Prescriptions"))
+df7%>%
+  select(DescriptionofInjury)%>%
+  group_by(DescriptionofInjury)%>%
+  summarize(n = n())
+```
+
+Here we see the top 10 most common injury places. Residence's account for by far the injuries.
+```{r}
+df3%>%
+  filter(!InjuryPlace == "Unknown" & !InjuryPlace == "Other")%>%
+  group_by(InjuryPlace)%>%
+  summarize(n = n())%>%
+  arrange(desc(n))%>%
+  na_if("")%>%
+  na.omit(InjuryPlace)%>%
+  slice(1:10)
+```
+
+```{r}
+df5%>%
+  filter(!is.na(InjuryCounty) & (Drug == "Heroin" | Drug == "Fentanyl" | Drug == "Heroin & Fentanyl" | Drug == "Cocaine" | Drug == "Heroin & Cocaine"))%>%
+  ggplot(aes(x = Drug, fill = InjuryCounty)) +
+  geom_bar()+
+  scale_fill_brewer(palette = "Paired")+
+  labs(title = 'Top 5 Drugs Causing Death Per County',
+       y = 'Death Count',
+       x = 'Drug'
+       )
+```
+
+```{r}
+df3%>%
+  select(ResidenceCounty, ResidenceState)
+```
+
+#### Spatial Data Analysis
+
+Because we will be creating maps, we need add a couple of libraries.
+
+```{r}
+library(leaflet)
+library(sf)
+library(widgetframe)
+library(here)
+```
+
+
+```{r}
+my_states <- c("AL", "CA", "CO", "CT", "FL", "GA", "IL", "LA", "MA", "MD", "ME", "MI", "MN", "NC", "NH", "NJ", "NY", "OH", "OK", "PA", "RI", "SC", "SD", "TN", "TX", "VT")
+
+my_vars <- c(
+  total_pop = "B01003_001",
+  median_income = "B19013_001"
+  )
+
+multi_state_tract <- get_acs(
+  geography = "county",
+  variables = my_vars,
+  state = my_states,
+  year = 2016,
+  survey = "acs5",
+  geometry = FALSE
+  ) %>% 
+  print()
+```
+
+
+Now, let's create a function *GeoSeparate* that separates out the latitude and longitude from the columns *DeathCityGeo*, *ResidenceCityGeo*, and *InjuryCityGeo*.
+```{r}
+geoSeparate <- function(Dataset, GeoCol) 
+  Dataset %>% 
+    separate({{GeoCol}}, into = c("Section1", "Section2"), sep = "\\(")%>%
+    separate(Section1, into = c("Section3", "Section4"), sep = ",")%>%
+    separate(Section2, into = c("NewGeoColumn", "Section5"), sep = "\\)")%>%
+    separate(NewGeoColumn, into = c("GeoColumnLat", "GeoColumnLon"), sep = ",")%>%
+    mutate(GeoColumnLat = as.double(GeoColumnLat))%>%
+    mutate(GeoColumnLon = as.double(GeoColumnLon))%>%
+    select(-Section3, -Section4, -Section5) #remove sections we don't need
+
+```
+
+Because the new columns are always named *GeoColumnLon* and *GeoColumnLat*, we need to rename them. 
+```{r}
+df6 <- df2%>%
+  geoSeparate(DeathCityGeo)%>% #separate
+    rename_all(recode, GeoColumnLat = "DeathCityLat", GeoColumnLon = "DeathCityLon")%>% #rename
+  geoSeparate(ResidenceCityGeo)%>% #separate
+    rename_all(recode, GeoColumnLat = "ResidenceLat", GeoColumnLon = "ResidenceLon")%>% #rename
+  geoSeparate(InjuryCityGeo)%>% #separate
+    rename_all(recode, GeoColumnLat = "InjuryCityLat", GeoColumnLon = "InjuryCityLon")%>% #rename
+  select(DeathCityLon, DeathCityLat, ResidenceLon, ResidenceLat, InjuryCityLon, InjuryCityLat)%>% #select columns
+  filter(!is.na(DeathCityLon), !is.na(DeathCityLat), !is.na(ResidenceLon), !is.na(ResidenceLat), !is.na(InjuryCityLon), !is.na(InjuryCityLat)) #remove any NA values
+df6
+```
+
+Using the Tidycensus API we will get the geometry of each county in Connecticut as well as the median income from 2014-2018. 
+
+```{r}
+ct <- get_acs(state = "CT", 
+              geography = "tract",
+              variables = c(medincome = "B19013_001"), 
+              geometry = TRUE)
+ct <- ct%>%
+  filter(!is.na(estimate))
+ct
+```
+
+We need to switch the CRS to EPSG:4326
+```{r}
+ct = st_transform(ct, 4326)
+```
+
+Here we build a map of Connecticut with each census tract defined. The median income is displayed per tract and markers show where deaths have occured. Zooming in, it appears that higher income areas have fewer deaths. However, there are many correla
+```{r}
+popup <- paste0("Median Income in 2014-2018: ", ct$estimate)
+pal <- colorNumeric(
+  palette = "RdYlGn",
+  domain = ct$estimate
+)
+ct_map <-
+  leaflet() %>%
+  addTiles() %>%
+  addPolygons(data= ct,
+              label = ~as.character(NAME),
+              fillColor = ~pal(estimate),
+              weight = 1,
+              opacity = 1.0,
+              fillOpacity = 0.5,
+              popup = popup,
+              highlightOptions = highlightOptions(color = "white",
+                                                  weight = 2,
+                                                  bringToFront = TRUE))%>%
+  addMarkers(data = df6, lng = ~DeathCityLon, lat = ~DeathCityLat, clusterOptions = markerClusterOptions())%>%
+  addLegend(pal = pal, 
+            values = ct$estimate, 
+            position = "bottomright", 
+            title = "Median Income in 2014-2018<br>") %>%
+   frameWidget()
+ct_map
+```
+
+
