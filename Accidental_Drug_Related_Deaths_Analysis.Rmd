@@ -31,6 +31,7 @@ Sys.getenv("CENSUS_API_KEY")
 ```
 NOTICE: "This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau."
 
+#### Load Data
 Next, we read in the csv file "Accidental_Drug_Related_Deaths_2012-2018.csv" that came from Data.gov. The dataset contains a listing of each accidental death associated with drug overdose in Connecticut from 2012 to 2018, excluding 2015 and 2017. The dataset can be found at: https://catalog.data.gov/dataset/accidental-drug-related-deaths-january-2012-sept-2015/resource/44580a89-a260-4844-8ead-35736f395389
 
 ```{r}
@@ -59,6 +60,7 @@ test_unique <- df%>%
   summarize(count = n_distinct(ID))
   nrow(df) == nrow(test_unique)
 ```
+#### Cleaning the data
 
 Now we should spread the variables "DateReported" and "DateofDeath" from the DateType column into separate columns. We also know see that there are 5,105 rows in this dataset.
 ```{r}
@@ -185,6 +187,7 @@ df3 <- df3%>%
   mutate(Drug = as.factor(Drug))
 df3
 ```
+#### Descriptive Graphics
 
 Now we want to look at the discribution of age and sex in this dataset. Most deaths appear to take place between 20 and 60 years old. The histogram also shows a sharp increase in deaths every 5 years. Females account for less accidental drug related deaths than men but follow a similar pattern to men.
 
@@ -214,7 +217,7 @@ df4 <- df3%>%
 df4
 ```
 
-Here's a visualize of the top drugs. Heroin, fentanyl, and cocaine and various combinations of them caused the most deaths.
+Here's a visualize of the top drugs. Heroin, fentanyl, and cocaine and various combinations of them, caused the most deaths between 2012 and 2018.
 ```{r}
 df4%>%
 ggplot(aes(x  = reorder(Drug, n), y = n))+
@@ -236,7 +239,7 @@ df5
 ```
 
 Using this new dataframe, we can look at age according to the top five drugs. Looking at the boxplot below, people seem to die from cocaine at an older age than those who die from other drugs. They die in their mid 40s to mid 50s, whereas people who die from other drugs, die in their late 20s to late 40s. These deaths range from the 25 percentile to 75th percentile. Therefore, deaths take place outside of this range. There are also a few outliers that we can also note for "cocaine" and "heroin & fentanyl".  
-```{r fig.height= 3, fig.width=5}
+```{r}
 df5%>%
   ggplot(mapping = aes(x = Drug, y = Age, fill = Drug)) + 
   geom_boxplot() +
@@ -249,7 +252,7 @@ df5%>%
 
 
 A violin plot of this data could help visualize the distribution of data. The graph shows that deaths from cocaine do concentrate at 50 years old with outliers leading down to 20 years old. Heroin and fentanyl concentrate around 30 years old and have outliers at older ages. "Heroin & Cocaine" has a fairly even distribution. "Heroin & Fentanyl" is slightly bimodal with concentrations at 30 years old and 50 years old, which is interesting. There are outliers as well leading up past 80 years old.
-```{r fig.height= 3, fig.width5}
+```{r}
 df5%>%
   ggplot(mapping = aes(x = Drug, y = Age, fill = Drug)) + 
   geom_violin() +
@@ -343,6 +346,8 @@ df3%>%
   facet_wrap(~ Drug, nrow = 3)
 ```
 
+
+#### Further Data Cleaning
 There are several columns of this dataset with hundreds of different values. For instance, here is the *LocationifOther* variable. We can see that there are 293 unique values. Looking through them, many indicate a person was at a hotel, motel, or lodge. Another common trend is that a person was at another person's residence. Finally, many people were found in a vehicle, car, or cab.
 ```{r}
 df3%>%
@@ -494,6 +499,7 @@ df3%>%
   slice(1:10)
 ```
 
+Here is a graph comparing drugs and death count. Each drug shows how many deaths took place per county.
 ```{r}
 df5%>%
   filter(!is.na(InjuryCounty) & (Drug == "Heroin" | Drug == "Fentanyl" | Drug == "Heroin & Fentanyl" | Drug == "Cocaine" | Drug == "Heroin & Cocaine"))%>%
