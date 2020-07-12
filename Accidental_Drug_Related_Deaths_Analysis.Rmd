@@ -26,12 +26,10 @@ library(RColorBrewer)
 library(tidycensus)
 library(viridis)
 ```
-We also need to get our API key for the census data.
 
-```{r}
-Sys.getenv("CENSUS_API_KEY")
-```
 NOTICE: "This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau."
+
+If using census data, you will need to add your own API key. The README file has more information on how to go about this.
 
 #### Loading the Data
 Next, we read in the csv file "Accidental_Drug_Related_Deaths_2012-2018.csv" that came from Data.gov. The dataset contains a listing of each accidental death associated with drug overdose in Connecticut from 2012 to 2018, excluding 2015 and 2017. The dataset can be found at: https://catalog.data.gov/dataset/accidental-drug-related-deaths-january-2012-sept-2015/resource/44580a89-a260-4844-8ead-35736f395389
@@ -504,7 +502,7 @@ df3%>%
 Here is a graph comparing drugs and death count. Each drug shows how many deaths took place per county.
 ```{r}
 df5%>%
-  filter(!is.na(InjuryCounty) & (Drug == "Heroin" | Drug == "Fentanyl" | Drug == "Heroin & Fentanyl" | Drug == "Cocaine" | Drug == "Heroin & Cocaine"))%>%
+  filter(!is.na(InjuryCounty))%>%
   ggplot(aes(x = Drug, fill = InjuryCounty)) +
   geom_bar()+
   scale_fill_brewer(palette = "Paired")+
@@ -514,14 +512,9 @@ df5%>%
        )
 ```
 
-```{r}
-df3%>%
-  select(ResidenceCounty, ResidenceState)
-```
-
 #### Spatial Data Analysis
 
-Because we will be creating maps, we need add a couple of libraries.
+Because we will be creating a map, we need add a couple of libraries.
 
 ```{r}
 library(leaflet)
@@ -529,27 +522,6 @@ library(sf)
 library(widgetframe)
 library(here)
 ```
-
-
-```{r}
-my_states <- c("AL", "CA", "CO", "CT", "FL", "GA", "IL", "LA", "MA", "MD", "ME", "MI", "MN", "NC", "NH", "NJ", "NY", "OH", "OK", "PA", "RI", "SC", "SD", "TN", "TX", "VT")
-
-my_vars <- c(
-  total_pop = "B01003_001",
-  median_income = "B19013_001"
-  )
-
-multi_state_tract <- get_acs(
-  geography = "county",
-  variables = my_vars,
-  state = my_states,
-  year = 2016,
-  survey = "acs5",
-  geometry = FALSE
-  ) %>% 
-  print()
-```
-
 
 Now, let's create a function *GeoSeparate* that separates out the latitude and longitude from the columns *DeathCityGeo*, *ResidenceCityGeo*, and *InjuryCityGeo*.
 ```{r}
@@ -578,9 +550,11 @@ df6 <- df2%>%
   filter(!is.na(DeathCityLon), !is.na(DeathCityLat), !is.na(ResidenceLon), !is.na(ResidenceLat), !is.na(InjuryCityLon), !is.na(InjuryCityLat)) #remove any NA values
 df6
 ```
+These coordinates could be useful for further map creation.
 
-Using the Tidycensus API we will get the geometry of each county in Connecticut as well as the median income from 2014-2018. 
+For now, we will create a map of Connecticut showing the median income for each census tract along with the location of each death.
 
+First, we will use the Tidycensus API to get the geometry of each county in Connecticut as well as the median income from 2014-2018. 
 ```{r}
 ct <- get_acs(state = "CT", 
               geography = "tract",
@@ -596,7 +570,7 @@ We need to switch the CRS to EPSG:4326
 ct = st_transform(ct, 4326)
 ```
 
-Here we build a map of Connecticut with each census tract defined. The median income is displayed per tract and markers show where deaths have occured. Zooming in, it appears that higher income areas have fewer deaths. However, there are many correla
+Below we build a map of Connecticut with each census tract defined. The median income is displayed per tract and markers show where deaths have occured. Zooming in, it appears that higher income areas have fewer deaths. However, there are many other factors that could be correlated such as population size.
 ```{r}
 popup <- paste0("Median Income in 2014-2018: ", ct$estimate)
 pal <- colorNumeric(

@@ -49,17 +49,10 @@ library(viridis)
 ```
 ## Loading required package: viridisLite
 ```
-We also need to get our API key for the census data.
 
-
-```r
-Sys.getenv("CENSUS_API_KEY")
-```
-
-```
-## [1] "ab364ec2a49a850220428b38c71f7f2877bfc009"
-```
 NOTICE: "This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau."
+
+If using census data, you will need to add your own API key. The README file has more information on how to go about this.
 
 #### Loading the Data
 Next, we read in the csv file "Accidental_Drug_Related_Deaths_2012-2018.csv" that came from Data.gov. The dataset contains a listing of each accidental death associated with drug overdose in Connecticut from 2012 to 2018, excluding 2015 and 2017. The dataset can be found at: https://catalog.data.gov/dataset/accidental-drug-related-deaths-january-2012-sept-2015/resource/44580a89-a260-4844-8ead-35736f395389
@@ -436,7 +429,7 @@ df3%>%
 ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-19-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 Now let's look at the fifteen most common drugs causing accidental drug deaths. 
 
@@ -487,7 +480,7 @@ ggplot(aes(x  = reorder(Drug, n), y = n))+
        )
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-21-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 
 We're going to make a new dataframe with only the 5 most common drug combinations, so that we can conduct further exploratory data analysis.
 
@@ -537,7 +530,7 @@ df5%>%
 ## Warning: Removed 2 rows containing non-finite values (stat_boxplot).
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-22-1.png)<!-- -->
 
 
 A violin plot of this data could help visualize the distribution of data. The graph shows that deaths from cocaine do concentrate at 50 years old with outliers leading down to 20 years old. Heroin and fentanyl concentrate around 30 years old and have outliers at older ages. "Heroin & Cocaine" has a fairly even distribution. "Heroin & Fentanyl" is slightly bimodal with concentrations at 30 years old and 50 years old, which is interesting. There are outliers as well leading up past 80 years old.
@@ -557,7 +550,7 @@ df5%>%
 ## Warning: Removed 2 rows containing non-finite values (stat_ydensity).
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-23-1.png)<!-- -->
 
 
 The boxplot below compares race and age. It shows that asian people have died from accidental drug related deaths before the age of 40, except for two outliers. Unlike asian people, the middle 50th percentile of black people have died between 40 and 60 years old with the median at 50 years old. The middle 50th percentile of white people have died between 30 and 50 years old.
@@ -574,7 +567,7 @@ df5%>%
   )
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-24-1.png)<!-- -->
 
 The violin plot below helps examine the distrubution of age and race. It shows where each group's outliers are, and it shows that the white distribution is slightly bimodal. 
 
@@ -590,7 +583,7 @@ df5%>%
   )
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-25-1.png)<!-- -->
 
 The graph below compares race and the top 5 drugs. Looking at the graph, it appears that white people have the largest amount of deaths for all five drugs. It also shows that heroin, by itself, accounts for the most deaths. We can also see that a large proportion of black people died from cocaine and a large proportion of white people died from heroin. 
 
@@ -606,7 +599,7 @@ df5%>%
        )
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-26-1.png)<!-- -->
 
 This next graph looks at the amount of deaths per year for the 5 most common drugs causing death. It shows that 2016 saw the most deaths and 2018 saw a steep decline in deaths. Deaths related to fentanyl or the combination of fentanyl and heroin have increased over the years. In particular, there was a big jump in deaths caused by fentanyl from 2012 to 2016. Deaths caused by cocaine or heroin, or the combination of the two, seem to have decreased over the years. 
 
@@ -622,7 +615,7 @@ df5%>%
        )
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-27-1.png)<!-- -->
 
 
 Now, looking at the amount of deaths per month for the top five drugs, it appears the fewest deaths occur in January and the most deaths occur in November. In general, deaths appear to peak every 3 months, with an overall increase throughout the year.
@@ -639,7 +632,7 @@ df5%>%
        )
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
 
 
 Next, we want to see the discribution of deaths by age for the 6 most common drugs. We show the breakdown of the year each death occured. Looking at the graph, it appears that deaths related to cocaine occur more often in someone's 40s and 50s. Deaths related to heroin peak in someone's 20s, especially during their mid-20s. They also peak during the mid-40s. Deaths related to fentanyl seem to concentrate in someone's 20s and 30s. Another interesting feature to notice is that deaths related to cocaine and heroin occured primarily between 2012-2014, while deaths related to fentanyl began later, in 2016. 
@@ -658,7 +651,7 @@ df3%>%
   facet_wrap(~ Drug, nrow = 3)
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-30-1.png)<!-- -->
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
 
 
 #### Further Data Cleaning
@@ -1050,7 +1043,7 @@ Here is a graph comparing drugs and death count. Each drug shows how many deaths
 
 ```r
 df5%>%
-  filter(!is.na(InjuryCounty) & (Drug == "Heroin" | Drug == "Fentanyl" | Drug == "Heroin & Fentanyl" | Drug == "Cocaine" | Drug == "Heroin & Cocaine"))%>%
+  filter(!is.na(InjuryCounty))%>%
   ggplot(aes(x = Drug, fill = InjuryCounty)) +
   geom_bar()+
   scale_fill_brewer(palette = "Paired")+
@@ -1060,34 +1053,11 @@ df5%>%
        )
 ```
 
-![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-46-1.png)<!-- -->
-
-
-```r
-df3%>%
-  select(ResidenceCounty, ResidenceState)
-```
-
-```
-## # A tibble: 5,105 x 2
-##    ResidenceCounty ResidenceState
-##    <chr>           <fct>         
-##  1 <NA>            <NA>          
-##  2 <NA>            <NA>          
-##  3 Fairfield       CT            
-##  4 Westchester     NY            
-##  5 Queens          <NA>          
-##  6 <NA>            <NA>          
-##  7 Hartford        <NA>          
-##  8 New Haven       <NA>          
-##  9 Hartford        <NA>          
-## 10 New London      <NA>          
-## # … with 5,095 more rows
-```
+![](Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-45-1.png)<!-- -->
 
 #### Spatial Data Analysis
 
-Because we will be creating maps, we need add a couple of libraries.
+Because we will be creating a map, we need add a couple of libraries.
 
 
 ```r
@@ -1114,49 +1084,6 @@ library(here)
 ```
 ## here() starts at /Users/aleahgoldstein/Documents/R Projects/EDA_AccidentalDrugDeaths_Connecticut
 ```
-
-
-
-```r
-my_states <- c("AL", "CA", "CO", "CT", "FL", "GA", "IL", "LA", "MA", "MD", "ME", "MI", "MN", "NC", "NH", "NJ", "NY", "OH", "OK", "PA", "RI", "SC", "SD", "TN", "TX", "VT")
-
-my_vars <- c(
-  total_pop = "B01003_001",
-  median_income = "B19013_001"
-  )
-
-multi_state_tract <- get_acs(
-  geography = "county",
-  variables = my_vars,
-  state = my_states,
-  year = 2016,
-  survey = "acs5",
-  geometry = FALSE
-  ) %>% 
-  print()
-```
-
-```
-## Getting data from the 2012-2016 5-year ACS
-```
-
-```
-## # A tibble: 3,436 x 5
-##    GEOID NAME                    variable      estimate   moe
-##    <chr> <chr>                   <chr>            <dbl> <dbl>
-##  1 01001 Autauga County, Alabama total_pop        55049    NA
-##  2 01001 Autauga County, Alabama median_income    53099  2631
-##  3 01003 Baldwin County, Alabama total_pop       199510    NA
-##  4 01003 Baldwin County, Alabama median_income    51365   991
-##  5 01005 Barbour County, Alabama total_pop        26614    NA
-##  6 01005 Barbour County, Alabama median_income    33956  2655
-##  7 01007 Bibb County, Alabama    total_pop        22572    NA
-##  8 01007 Bibb County, Alabama    median_income    39776  3306
-##  9 01009 Blount County, Alabama  total_pop        57704    NA
-## 10 01009 Blount County, Alabama  median_income    46212  2443
-## # … with 3,426 more rows
-```
-
 
 Now, let's create a function *GeoSeparate* that separates out the latitude and longitude from the columns *DeathCityGeo*, *ResidenceCityGeo*, and *InjuryCityGeo*.
 
@@ -1227,9 +1154,11 @@ df6
 ## 10        -72.7         41.6        -72.7         41.6         -72.7
 ## # … with 4,927 more rows, and 1 more variable: InjuryCityLat <dbl>
 ```
+These coordinates could be useful for further map creation.
 
-Using the Tidycensus API we will get the geometry of each county in Connecticut as well as the median income from 2014-2018. 
+For now, we will create a map of Connecticut showing the median income for each census tract along with the location of each death.
 
+First, we will use the Tidycensus API to get the geometry of each county in Connecticut as well as the median income from 2014-2018. 
 
 ```r
 ct <- get_acs(state = "CT", 
@@ -1247,7 +1176,7 @@ ct <- get_acs(state = "CT",
 ```
 
 ```
-##   |                                                                              |                                                                      |   0%  |                                                                              |====                                                                  |   5%  |                                                                              |=====                                                                 |   7%  |                                                                              |========                                                              |  12%  |                                                                              |==========                                                            |  14%  |                                                                              |=============                                                         |  19%  |                                                                              |===============                                                       |  21%  |                                                                              |==================                                                    |  26%  |                                                                              |====================                                                  |  29%  |                                                                              |=======================                                               |  33%  |                                                                              |=========================                                             |  36%  |                                                                              |============================                                          |  40%  |                                                                              |==============================                                        |  43%  |                                                                              |=================================                                     |  47%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================                                |  54%  |                                                                              |========================================                              |  57%  |                                                                              |===========================================                           |  61%  |                                                                              |=============================================                         |  64%  |                                                                              |================================================                      |  68%  |                                                                              |=================================================                     |  71%  |                                                                              |=====================================================                 |  75%  |                                                                              |======================================================                |  78%  |                                                                              |==========================================================            |  82%  |                                                                              |===========================================================           |  85%  |                                                                              |===============================================================       |  89%  |                                                                              |================================================================      |  92%  |                                                                              |===================================================================   |  96%  |                                                                              |===================================================================== |  99%  |                                                                              |======================================================================| 100%
+##   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   5%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |==========                                                            |  15%  |                                                                              |=============                                                         |  18%  |                                                                              |================                                                      |  23%  |                                                                              |===================                                                   |  27%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  34%  |                                                                              |==========================                                            |  37%  |                                                                              |=============================                                         |  41%  |                                                                              |================================                                      |  46%  |                                                                              |==================================                                    |  48%  |                                                                              |=====================================                                 |  53%  |                                                                              |=======================================                               |  55%  |                                                                              |==========================================                            |  60%  |                                                                              |=============================================                         |  65%  |                                                                              |===============================================                       |  67%  |                                                                              |==================================================                    |  72%  |                                                                              |====================================================                  |  74%  |                                                                              |=======================================================               |  79%  |                                                                              |==========================================================            |  83%  |                                                                              |============================================================          |  85%  |                                                                              |===============================================================       |  90%  |                                                                              |=================================================================     |  92%  |                                                                              |====================================================================  |  97%  |                                                                              |======================================================================| 100%
 ```
 
 ```r
@@ -1293,7 +1222,7 @@ We need to switch the CRS to EPSG:4326
 ct = st_transform(ct, 4326)
 ```
 
-Here we build a map of Connecticut with each census tract defined. The median income is displayed per tract and markers show where deaths have occured. Zooming in, it appears that higher income areas have fewer deaths. However, there are many correla
+Below we build a map of Connecticut with each census tract defined. The median income is displayed per tract and markers show where deaths have occured. Zooming in, it appears that higher income areas have fewer deaths. However, there are many other factors that could be correlated such as population size.
 
 ```r
 popup <- paste0("Median Income in 2014-2018: ", ct$estimate)
@@ -1323,7 +1252,7 @@ ct_map <-
 ct_map
 ```
 
-<!--html_preserve--><div id="htmlwidget-9257f7ed031f8e62e241" style="width:100%;height:480px;" class="widgetframe html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9257f7ed031f8e62e241">{"x":{"url":"Accidental_Drug_Related_Deaths_Analysis_files/figure-html//widgets/widget_unnamed-chunk-54.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-6dc29ddc8958b8d6d8dc" style="width:100%;height:480px;" class="widgetframe html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6dc29ddc8958b8d6d8dc">{"x":{"url":"Accidental_Drug_Related_Deaths_Analysis_files/figure-html//widgets/widget_unnamed-chunk-51.html","options":{"xdomain":"*","allowfullscreen":false,"lazyload":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 
