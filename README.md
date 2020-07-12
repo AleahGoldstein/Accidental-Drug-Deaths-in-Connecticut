@@ -5,7 +5,7 @@ The first part of the project consists of data cleaning, as to make the data tid
 
 ### Observations
 
-* Far more males than females die from drugs overdoses.
+* Far more males than females die from drug overdoses.
 * Heroin, fentanyl, and cocaine and their combinations are the most common causes of death.
 * Cocaine deaths occur later than heroin and fentanyl deaths. 
 * White people constitute the majority of the deaths.
@@ -15,7 +15,7 @@ The first part of the project consists of data cleaning, as to make the data tid
 * In decreasing frequency, death locations include a person's own residence, a hospital, another person's residence, hotels/motels, and vehicles.
 * About 36% of injuries were due to the abuse of prescribed medications.
 
-![Top 5 Drugs vs Death Count Per Year](https://github.com/[AleahGoldstein]/[EDA_AccidentalDrugDeaths_Connecticut]/blob/[Master]/Accidental_Drug_Related_Deaths_Analysis_files/unnamed-chunk-30-1.png?raw=true)
+![Top 5 Drugs vs Death Count Per Year](https://github.com/AleahGoldstein/EDA_AccidentalDrugDeaths_Connecticut/blob/master/Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-30-1.png)
 
 ### Requirments:
 * Please make sure you have your Census API key set in your environment for use with `tidycensus`. See here for more details: https://walker-data.com/tidycensus/reference/census_api_key.html
