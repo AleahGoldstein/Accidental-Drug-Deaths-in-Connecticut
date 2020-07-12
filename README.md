@@ -15,10 +15,10 @@ The first part of the project consists of data cleaning, as to make the data tid
 * In decreasing frequency, death locations include a person's own residence, a hospital, another person's residence, hotels/motels, and vehicles.
 * About 36% of injuries were due to the abuse of prescribed medications.
 
-![Top 5 Drugs vs Death Count Per Year](https://github.com/[AleahGoldstein]/[EDA_AccidentalDrugDeaths_Connecticut]/blob/[Master]/unnamed-chunk-30-1.png?raw=true)
+![Top 5 Drugs vs Death Count Per Year](https://github.com/[AleahGoldstein]/[EDA_AccidentalDrugDeaths_Connecticut]/blob/[Master]/Accidental_Drug_Related_Deaths_Analysis_files/unnamed-chunk-30-1.png?raw=true)
 
 ### Requirments:
 * Please make sure you have your Census API key set in your environment for use with `tidycensus`. See here for more details: https://walker-data.com/tidycensus/reference/census_api_key.html
 * Download and install R and RStudio
-* Install libraries: `tidyverse`, `dplyr`, `forcats`, `stringr`, `tools`, `tidycensus`, `RColorBrewer`, `viridis`, `leaflet`, `sf`, `widgetframe`, `here`
+* Install libraries: `tidyverse`, `ggplot2`, `dplyr`, `forcats`, `stringr`, `tools`, `tidycensus`, `RColorBrewer`, `viridis`, `leaflet`, `sf`, `widgetframe`, `here`
 
