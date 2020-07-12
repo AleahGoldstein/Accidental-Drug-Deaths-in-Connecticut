@@ -5,21 +5,20 @@ The first part of the project consists of data cleaning, as to make the data tid
 
 ### Observations
 
-*Far more males than females die from drugs overdoses.
-*Heroin, fentanyl, and cocaine and their combinations are the most common causes of death.
-*Cocaine deaths occur later than heroin and fentanyl deaths. 
-*White people constitute the majority of the deaths.
-*Black people die from cocaine more than the other drugs.
-*The fewest deaths occur in January and the most deaths occur in November.
-*Deaths from fentanyl increased significantly in 2016 and 2018.
-*In decreasing frequency, death locations include a person's own residence, a hospital, another person's residence, hotels/motels, and vehicles.
-*About 36% of injuries were due to the abuse of prescribed medications.
+* Far more males than females die from drugs overdoses.
+* Heroin, fentanyl, and cocaine and their combinations are the most common causes of death.
+* Cocaine deaths occur later than heroin and fentanyl deaths. 
+* White people constitute the majority of the deaths.
+* Black people die from cocaine more than the other drugs.
+* The fewest deaths occur in January and the most deaths occur in November.
+* Deaths from fentanyl increased significantly in 2016 and 2018.
+* In decreasing frequency, death locations include a person's own residence, a hospital, another person's residence, hotels/motels, and vehicles.
+* About 36% of injuries were due to the abuse of prescribed medications.
 
-
-![Top 5 Drugs vs Death Count Per Year](AleahGoldstein/EDA_AccidentalDrugDeaths_Connecticut/Accidental_Drug_Related_Deaths_Analysis_files/figure-html/unnamed-chunk-30-1.png?raw=true "Top 5 Drugs vs Death Count Per Year")
+![Top 5 Drugs vs Death Count Per Year](https://github.com/[AleahGoldstein]/[EDA_AccidentalDrugDeaths_Connecticut]/blob/[Master]/unnamed-chunk-30-1.png?raw=true)
 
 ### Requirments:
 * Please make sure you have your Census API key set in your environment for use with `tidycensus`. See here for more details: https://walker-data.com/tidycensus/reference/census_api_key.html
 * Download and install R and RStudio
-* Install libraries: tidyverse, dplyr, forcats, stringr, tools, tidycensus, RColorBrewer, viridis, leaflet, sf, widgetframe, here
+* Install libraries: `tidyverse`, `dplyr`, `forcats`, `stringr`, `tools`, `tidycensus`, `RColorBrewer`, `viridis`, `leaflet`, `sf`, `widgetframe`, `here`
 
