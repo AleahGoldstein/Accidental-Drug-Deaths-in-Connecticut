@@ -246,7 +246,7 @@ df5%>%
   scale_fill_viridis(option = "D", discrete = TRUE)+
   theme(legend.position = "none")+
   labs(
-    title = "Boxplot of Age vs Drug Taken"
+    title = "Boxplot of Drug Type vs Age"
   )
 ```
 
@@ -259,7 +259,7 @@ df5%>%
   theme(legend.position = "none")+
   scale_fill_viridis(option = "D", discrete = TRUE)+
   labs(
-    title = "Violin Plot of Age vs Drug Taken"
+    title = "Violin Plot of Drug Type vs Age"
   )
 ```
 
@@ -273,7 +273,7 @@ df5%>%
   scale_fill_viridis(option = "B", discrete = TRUE)+
   theme(legend.position = "none")+
   labs(
-    title = "Boxplot of Race vs Drug Taken"
+    title = "Boxplot of Drug Type vs Race"
   )
 ```
 
@@ -286,7 +286,7 @@ df5%>%
   scale_fill_viridis(option = "B", discrete = TRUE)+
   theme(legend.position = "none")+
   labs(
-    title = "Violin Plot of Race vs Drug Taken"
+    title = "Violin Plot of Drug Type vs Race"
   )
 ```
 
@@ -331,7 +331,7 @@ df5%>%
 ```
 
 
-Next, we want to see the discribution of deaths by age for the 6 most common drugs. We show the breakdown of the year each death occured. Looking at the graph, it appears that deaths related to cocaine occur more often in someone's 40s and 50s. Deaths related to heroin peak in someone's 20s, especially during their mid-20s. They also peak during the mid-40s. Deaths related to fentanyl seem to concentrate in someone's 20s and 30s. Another interesting feature to notice is that deaths related to cocaine and heroin occured primarily between 2012-2014, while deaths related to fentanyl began later, in 2016. 
+Next, we want to see the distribution of deaths by age for the 6 most common drugs. We show the breakdown of the year each death occured. Looking at the graph, it appears that deaths related to cocaine occur more often in someone's 40s and 50s. Deaths related to heroin peak in someone's 20s, especially during their mid-20s. They also peak during the mid-40s. Deaths related to fentanyl seem to concentrate in someone's 20s and 30s. Another interesting feature to notice is that deaths related to cocaine and heroin occured primarily between 2012-2014, while deaths related to fentanyl began later, in 2016. 
 
 ```{r fig.height=10, fig.width=12}
 df3%>%
