@@ -1,7 +1,7 @@
 ---
 title: "Accidental_Drug_Related_Deaths"
 author: "Aleah Goldstein"
-date: "5/28/2020"
+date: "2020-05-28"
 output: 
   html_document:
     keep_md: true
