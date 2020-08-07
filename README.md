@@ -1,5 +1,5 @@
 ## Exploratory Data Analysis of Accidental Drug Deaths in Connecticut
-For this project I performed an exploratory data analysis on accidental drug related deaths in Connecticut from 2012-2018. The dataset was taken from Data.gov and contains information on accidental drug related deaths in Connecticut from 2012 to 2018, excluding 2015 and 2017. The dataset can be found at: https://catalog.data.gov/dataset/accidental-drug-related-deaths-january-2012-sept-2015/resource/44580a89-a260-4844-8ead-35736f395389
+For this project, I performed an exploratory data analysis on accidental drug-related deaths in Connecticut from 2012-2018. The dataset was taken from Data.gov and contains information on accidental drug related deaths in Connecticut from 2012 to 2018, excluding 2015 and 2017. The dataset can be found at: https://catalog.data.gov/dataset/accidental-drug-related-deaths-january-2012-sept-2015/resource/44580a89-a260-4844-8ead-35736f395389
 
 The first part of the project consists of data cleaning, as to make the data tidy. The second part contains descriptive graphs showing trends in age, sex, race, drug type, and more. The last part of the project integrates spacial data using `tidycensus`. The map created can be viewed in `Leaflet` - `OpenStreetMap`. 
 
